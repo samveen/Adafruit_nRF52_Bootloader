@@ -9,7 +9,12 @@
 #******************************************************************************
 SRC_PATH     = src
 
+ifeq ("$(SDKVER)","16")
+SDK_PATH_ROOT= lib/sdk$(SDKVER)
+SDK_PATH     = $(SDK_PATH_ROOT)/components
+else
 SDK_PATH     = lib/sdk/components
+endif
 SDK11_PATH   = lib/sdk11/components
 SD_PATH      = lib/softdevice/$(SD_FILENAME)
 
@@ -148,12 +153,23 @@ C_SOURCE_FILES += $(SDK_PATH)/libraries/util/nrf_assert.c
 # UART or USB Serial
 ifeq ($(MCU_SUB_VARIANT),nrf52)
 C_SOURCE_FILES += $(SDK_PATH)/libraries/uart/app_uart.c
+ifeq ("$(SDKVER)","16")
+C_SOURCE_FILES += $(SDK_PATH_ROOT)/integration/nrfx/legacy/nrf_drv_uart.c
+C_SOURCE_FILES += $(NRFX_PATH)/drivers/src/nrfx_uart.c
+else
 C_SOURCE_FILES += $(SDK_PATH)/drivers_nrf/uart/nrf_drv_uart.c
 C_SOURCE_FILES += $(SDK_PATH)/drivers_nrf/common/nrf_drv_common.c
+endif
+
 
 IPATH += $(SDK11_PATH)/libraries/util
 IPATH += $(SDK_PATH)/drivers_nrf/common
+ifeq ("$(SDKVER)","16")
+IPATH += $(SDK_PATH_ROOT)/integration/nrfx/legacy
+IPATH += $(SDK_PATH_ROOT)/integration/nrfx
+#else
 IPATH += $(SDK_PATH)/drivers_nrf/uart
+endif
 
 else
 # src
@@ -212,8 +228,15 @@ IPATH += $(SDK_PATH)/libraries/crc16
 IPATH += $(SDK_PATH)/libraries/util
 IPATH += $(SDK_PATH)/libraries/hci/config
 IPATH += $(SDK_PATH)/libraries/uart
+ifeq ("$(SDKVER)","16")
+IPATH += $(SDK_PATH_ROOT)/integration/nrfx/legacy
+endif
 IPATH += $(SDK_PATH)/libraries/hci
+ifeq ("$(SDKVER)","16")
+IPATH += $(SDK_PATH)/libraries/delay
+else
 IPATH += $(SDK_PATH)/drivers_nrf/delay
+endif
 
 # Softdevice
 IPATH += $(SD_API_PATH)/include
