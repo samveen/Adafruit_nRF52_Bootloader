@@ -43,6 +43,11 @@
 
 #include <nrfx.h>
 
+// Hack to provide ret_code_t
+#ifndef SDK_ERRORS_H__
+typedef nrfx_err_t ret_code_t;
+#endif
+
 #if defined(UARTE_PRESENT) && NRFX_CHECK(NRFX_UARTE_ENABLED)
     #define NRF_DRV_UART_WITH_UARTE
 #endif
