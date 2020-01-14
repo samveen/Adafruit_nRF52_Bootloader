@@ -21,7 +21,9 @@ SD_PATH      = lib/softdevice/$(SD_FILENAME)
 TUSB_PATH    = lib/tinyusb/src
 NRFX_PATH    = lib/nrfx
 
+ifndef SD_VERSION
 SD_VERSION   = 6.1.1
+endif
 SD_FILENAME  = $(SD_NAME)_nrf52_$(SD_VERSION)
 SD_API_PATH  = $(SD_PATH)/$(SD_FILENAME)_API
 SD_HEX       = $(SD_PATH)/$(SD_FILENAME)_softdevice.hex
@@ -95,9 +97,11 @@ BUILD = _build-$(BOARD)
 
 # MCU_SUB_VARIANT can be nrf52 (nrf52832), nrf52833, nrf52840
 ifeq ($(MCU_SUB_VARIANT),nrf52)
+ifndef SD_NAME
   SD_NAME = s132
+endif
   DFU_DEV_REV = 0xADAF
-  MCU_FLAGS = -DNRF52 -DNRF52832_XXAA -DS132
+  MCU_FLAGS = -DNRF52 -DNRF52832_XXAA -D$(shell echo $(SD_NAME)| tr 'a-z' 'A-Z')
 else ifeq ($(MCU_SUB_VARIANT),nrf52833)
   SD_NAME = s140
   DFU_DEV_REV = 52840
