@@ -9,14 +9,21 @@
 #******************************************************************************
 SRC_PATH     = src
 
+ifeq ("$(SDKVER)","16")
+SDK_PATH_ROOT= lib/sdk$(SDKVER)
+SDK_PATH     = $(SDK_PATH_ROOT)/components
+else
 SDK_PATH     = lib/sdk/components
+endif
 SDK11_PATH   = lib/sdk11/components
 SD_PATH      = lib/softdevice/$(SD_FILENAME)
 
 TUSB_PATH    = lib/tinyusb/src
 NRFX_PATH    = lib/nrfx
 
+ifndef SD_VERSION
 SD_VERSION   = 6.1.1
+endif
 SD_FILENAME  = $(SD_NAME)_nrf52_$(SD_VERSION)
 SD_API_PATH  = $(SD_PATH)/$(SD_FILENAME)_API
 SD_HEX       = $(SD_PATH)/$(SD_FILENAME)_softdevice.hex
@@ -90,9 +97,11 @@ BUILD = _build-$(BOARD)
 
 # MCU_SUB_VARIANT can be nrf52 (nrf52832), nrf52833, nrf52840
 ifeq ($(MCU_SUB_VARIANT),nrf52)
+ifndef SD_NAME
   SD_NAME = s132
+endif
   DFU_DEV_REV = 0xADAF
-  MCU_FLAGS = -DNRF52 -DNRF52832_XXAA -DS132
+  MCU_FLAGS = -DNRF52 -DNRF52832_XXAA -D$(shell echo $(SD_NAME)| tr 'a-z' 'A-Z')
 else ifeq ($(MCU_SUB_VARIANT),nrf52833)
   SD_NAME = s140
   DFU_DEV_REV = 52840
@@ -148,12 +157,23 @@ C_SOURCE_FILES += $(SDK_PATH)/libraries/util/nrf_assert.c
 # UART or USB Serial
 ifeq ($(MCU_SUB_VARIANT),nrf52)
 C_SOURCE_FILES += $(SDK_PATH)/libraries/uart/app_uart.c
+ifeq ("$(SDKVER)","16")
+C_SOURCE_FILES += $(SDK_PATH_ROOT)/integration/nrfx/legacy/nrf_drv_uart.c
+C_SOURCE_FILES += $(NRFX_PATH)/drivers/src/nrfx_uart.c
+else
 C_SOURCE_FILES += $(SDK_PATH)/drivers_nrf/uart/nrf_drv_uart.c
 C_SOURCE_FILES += $(SDK_PATH)/drivers_nrf/common/nrf_drv_common.c
+endif
+
 
 IPATH += $(SDK11_PATH)/libraries/util
 IPATH += $(SDK_PATH)/drivers_nrf/common
+ifeq ("$(SDKVER)","16")
+IPATH += $(SDK_PATH_ROOT)/integration/nrfx/legacy
+IPATH += $(SDK_PATH_ROOT)/integration/nrfx
+#else
 IPATH += $(SDK_PATH)/drivers_nrf/uart
+endif
 
 else
 # src
@@ -212,8 +232,15 @@ IPATH += $(SDK_PATH)/libraries/crc16
 IPATH += $(SDK_PATH)/libraries/util
 IPATH += $(SDK_PATH)/libraries/hci/config
 IPATH += $(SDK_PATH)/libraries/uart
+ifeq ("$(SDKVER)","16")
+IPATH += $(SDK_PATH_ROOT)/integration/nrfx/legacy
+endif
 IPATH += $(SDK_PATH)/libraries/hci
+ifeq ("$(SDKVER)","16")
+IPATH += $(SDK_PATH)/libraries/delay
+else
 IPATH += $(SDK_PATH)/drivers_nrf/delay
+endif
 
 # Softdevice
 IPATH += $(SD_API_PATH)/include
